@@ -100,8 +100,22 @@ int main(int argc, char **argv) {
             continue;
         }
 
-        double energy_j = sg_host_get_consumed_energy(host);
-        double carbon   = sg_host_get_carbon_footprint(host);
+        // ENERGIA ANALITICA (Caminho 2): coerente com o makespan do modelo,
+        // no lugar do plugin do SimGrid (que media sobre o tempo fisico orfao).
+        // E = pidle*makespan + (pmax-pidle)*ativo. Potencia lida do XML (nunca
+        // hardcoded); ativo vem do merge de intervalos (sem dupla contagem).
+        static auto host_load_energy = controller->getHostTotalLoad();
+        static double makespan_energy = controller->getMakespan();
+        double pidle = 0.0, pmax = 0.0, ci = 473.0;
+        const char* w = host->get_property("wattage_per_state");
+        if (w) { std::string ws(w); auto cc = ws.find(':');
+            try { if (cc!=std::string::npos){ pidle=std::stod(ws.substr(0,cc)); pmax=std::stod(ws.substr(cc+1)); } } catch(...){} }
+        const char* cip = host->get_property("carbon_intensity");
+        if (cip) { try { ci = std::stod(cip); } catch(...){} }
+        std::string hnome = host->get_cname();
+        double ativo = host_load_energy.count(hnome) ? host_load_energy[hnome] : 0.0;
+        double energy_j = pidle * makespan_energy + (pmax - pidle) * ativo;
+        double carbon   = (energy_j / 3.6e6) * ci;
 
         double energy_kwh = energy_j / 3.6e6;
 
