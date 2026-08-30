@@ -319,7 +319,15 @@ int Controller::main() {
     }
 
     double end_time = this->getSimulation()->getCurrentSimulatedDate();
-    this->makespan = end_time - start_time;
+    // CAMINHO 2: makespan = maior task_finish_time (modelo de escalonamento,
+    // ja inclui custo de comunicacao heterogeneo). Substitui end_time-start_time
+    // (relogio fisico do SimGrid), dominado pelo disco unico.
+    double makespan_analitico = 0.0;
+    for (auto const &kv : task_finish_time) {
+        makespan_analitico = std::max(makespan_analitico, kv.second);
+    }
+    this->makespan = makespan_analitico;
+    (void) end_time;
 
     // Merge de intervalos por host — evita dupla contagem de tarefas
     // enfileiradas no mesmo host 
@@ -364,7 +372,7 @@ int Controller::main() {
         std::cout << std::left << std::setw(20) << h.first << " | " << std::fixed << std::setprecision(4) << host_total_load[h.first] << " s (Load)" << std::endl;
     }
     std::cout << "------------------------------------------------------------" << std::endl;
-    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << (end_time - start_time) << " s" << std::endl;
+    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << this->makespan << " s" << std::endl;
     std::cout << "============================================================" << std::endl;
 
     return 0;
