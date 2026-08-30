@@ -1,0 +1,19 @@
+# binarios e build
+build/
+*.o
+*.so
+
+# dados/resultados pesados e regeneraveis (NAO versionar)
+results/
+ddd/
+data/Antigos/
+**/*_tasks/
+*.csv
+*.log
+
+# python
+__pycache__/
+*.pyc
+
+# temporarios
+/tmp/

@@ -1,0 +1,143 @@
+<?xml version='1.0'?>
+<!DOCTYPE platform SYSTEM "https://simgrid.org/simgrid.dtd">
+<platform version="4.1">
+    <zone id="AS0" routing="Dijkstra">
+
+        <!-- ================================================== -->
+        <!-- HOSTS: 1 CPU Principal (DGX_System) + 16 GPUs -->
+        <!-- ================================================== -->
+
+        <!-- Host Principal: Representa o chassi, CPUs AMD EPYC, 1TB RAM, etc. -->
+        <host id="DGX_System" speed="34000Gf" core="128">
+            <prop id="wattage_per_state" value="1100.0:3300.0" />
+            <prop id="wattage_off" value="25" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="25000000000" />
+            <disk id="nvme_storage" read_bw="25GBps" write_bw="12GBps">
+                <prop id="size" value="15000GiB"/>
+                <prop id="mount" value="/"/>
+            </disk>
+        </host>
+
+        <host id="GPU1" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU2" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU3" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU4" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU5" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+        <host id="GPU6" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+        <host id="GPU7" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+        <host id="GPU8" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+        <host id="GPU9" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU10" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU11" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU12" speed="67000Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:700.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="12000000000" />
+        </host>
+        <host id="GPU13" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+        <host id="GPU14" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+        <host id="GPU15" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+        <host id="GPU16" speed="19500Gf" core="1">
+            <prop id="wattage_per_state" value="50.0:400.0" />
+            <prop id="wattage_off" value="0" />
+            <prop id="carbon_intensity" value="473" />
+            <prop id="io_bandwidth_Bps" value="3000000000" />
+        </host>
+
+        <!-- ================================================== -->
+        <!-- LINKS E ROTAS                                      -->
+        <!-- ================================================== -->
+
+        <link id="internal_fabric" bandwidth="300GBps" latency="2us"/>
+
+        <route src="DGX_System" dst="GPU1"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU2"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU3"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU4"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU5"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU6"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU7"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU8"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU9"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU10"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU11"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU12"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU13"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU14"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU15"><link_ctn id="internal_fabric"/></route>
+        <route src="DGX_System" dst="GPU16"><link_ctn id="internal_fabric"/></route>
+
+    </zone>
+</platform>
