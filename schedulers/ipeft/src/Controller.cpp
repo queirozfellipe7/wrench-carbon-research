@@ -690,7 +690,15 @@ int Controller::main() {
     }
 
     double end_time = this->getSimulation()->getCurrentSimulatedDate();
-    this->makespan = end_time - start_time;
+    // CAMINHO 2: makespan = maior task_finish_time (EFT ESTIMADO da alocacao,
+    // linha ~628), que inclui comunicacao heterogenea — NAO task_real_finish_time
+    // (fisico do SimGrid, contaminado pelo disco). Coerente com HEFT/DLS/PEFT.
+    double makespan_analitico = 0.0;
+    for (auto const &kv : task_finish_time) {
+        makespan_analitico = std::max(makespan_analitico, kv.second);
+    }
+    this->makespan = makespan_analitico;
+    (void) end_time;
 
     // Merge de intervalos por host — evita dupla contagem de tarefas
     // enfileiradas no mesmo host (mesma correção aplicada no HEFT/MOHEFT).
@@ -744,7 +752,7 @@ int Controller::main() {
     }
 
     std::cout << "------------------------------------------------------------" << std::endl;
-    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << (end_time - start_time) << " s" << std::endl;
+    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << this->makespan << " s" << std::endl;
     std::cout << "============================================================" << std::endl;
 
     return 0;
