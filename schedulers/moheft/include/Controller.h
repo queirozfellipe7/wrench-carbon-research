@@ -39,6 +39,7 @@ private:
         double carbon_gco2 = 0.0;
         std::map<std::string, double> finish_time;          // tempo de término por tarefa
         std::map<std::string, double> host_avail;           // disponibilidade futura por host
+        std::map<std::string, double> active_time;          // tempo de compute ATIVO por host (p/ energia idle+ativo)
         double crowding_distance = 0.0;                      // usado só na poda da fronteira por K (diversidade nos 3 objetivos)
     };
 

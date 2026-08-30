@@ -378,15 +378,28 @@ int Controller::main() {
                 double est = std::max(avail, ready_time);
                 double eft = est + execution_time;
 
-                double energy = host_pmax[hostname] * execution_time;  // Joules
-
                 Solution news = curr;
                 news.assignment[task] = hostname;
                 news.finish_time[task] = eft;
                 news.host_avail[hostname] = eft;
                 news.makespan = std::max(news.makespan, eft);
-                news.energy_joules += energy;
-                news.carbon_gco2 += (energy / 3.6e6) * host_carbon_intensity[hostname];
+                news.active_time[hostname] += execution_time;
+                // CORRECAO ENERGIA (modelo fisico, coerente com o plugin do SimGrid):
+                //   E = SOMA_h [ pidle_h * makespan + (pmax_h - pidle_h) * ativo_h ]
+                // Recalculada AQUI (nao so no fim) porque dominates() e o crowding
+                // usam energy_joules/carbon_gco2 DURANTE a busca. O modelo antigo
+                // (pmax*ativo apenas) ignorava o idle e premiava espalhar tarefas
+                // em GPUs lentas -> solucao dominada em makespan E energia.
+                double E = 0.0, C = 0.0;
+                for (auto const &hh : host_list) {
+                    double at = news.active_time.count(hh) ? news.active_time.at(hh) : 0.0;
+                    double e_h = host_pidle[hh] * news.makespan
+                               + (host_pmax[hh] - host_pidle[hh]) * at;
+                    E += e_h;
+                    C += (e_h / 3.6e6) * host_carbon_intensity[hh];
+                }
+                news.energy_joules = E;
+                news.carbon_gco2   = C;
 
                 candidates.push_back(news);
             }
@@ -527,7 +540,12 @@ int Controller::main() {
         }
     }
     double end_time = this->getSimulation()->getCurrentSimulatedDate();
-    this->makespan = end_time - start_time;
+    // CAMINHO 2 (MOHEFT): makespan = makespan da solucao escolhida na fronteira
+    // de Pareto (best.makespan, ja analitico e com comunicacao heterogenea).
+    // Garante que makespan, energia e carbono venham da MESMA Solution 'best'
+    // — coerencia multiobjetivo. Substitui end_time-start_time (fisico/disco).
+    this->makespan = best.makespan;
+    (void) end_time;
 
     // Merge de intervalos por host — evita dupla contagem quando várias
     // tarefas ficam enfileiradas no mesmo host (mesma correção do HEFT).
@@ -589,7 +607,7 @@ int Controller::main() {
     }
    
     std::cout << "------------------------------------------------------------" << std::endl;
-    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << (end_time - start_time) << " s" << std::endl;
+    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << this->makespan << " s" << std::endl;
     std::cout << "============================================================" << std::endl;
 
     return 0;
