@@ -178,19 +178,23 @@ int Controller::main() {
         return 0.5;  // default
     }();
     std::map<std::string, double> host_pmax;
+    std::map<std::string, double> host_pidle;
     std::map<std::string, double> host_carbon;
     for (const auto& h : host_list) {
-        double pmax = 1.0, carbon = 473.0;
+        double pmax = 1.0, pidle = 0.0, carbon = 473.0;
         auto sg_host = simgrid::s4u::Host::by_name_or_null(h);
         if (sg_host) {
             const char* w_str = sg_host->get_property("wattage_per_state");
             if (w_str) { std::string s(w_str); auto colon=s.find(':');
-                try { pmax=(colon!=std::string::npos)?std::stod(s.substr(colon+1)):std::stod(s);}catch(...){} }
+                try {
+                    pmax=(colon!=std::string::npos)?std::stod(s.substr(colon+1)):std::stod(s);
+                    pidle=(colon!=std::string::npos)?std::stod(s.substr(0,colon)):0.0;
+                }catch(...){} }
             const char* c_str = sg_host->get_property("carbon_intensity");
             if (c_str) { try{carbon=std::stod(c_str);}catch(...){} }
             else WRENCH_WARN("Host %s sem carbon_intensity; fallback 473.", h.c_str());
         }
-        host_pmax[h]=pmax; host_carbon[h]=carbon;
+        host_pmax[h]=pmax; host_pidle[h]=pidle; host_carbon[h]=carbon;
     }
     WRENCH_INFO("EA-HEFT carbon-aware, ALPHA=%.3f (1=makespan, 0=carbono)", ALPHA);
 
@@ -279,8 +283,25 @@ int Controller::main() {
             }
             double execution_time = get_exec_time(id, hostname);
             auto slot = find_insertion_slot(hostname, ready_time, execution_time);
-            double energy_kwh = (host_pmax.at(hostname) * execution_time) / 3.6e6;
-            double carbon_g   = energy_kwh * host_carbon.at(hostname);
+            // CORRECAO ENERGIA/CARBONO (modelo fisico, mesmo principio do MOHEFT):
+            // o carbono do candidato = acrescimo ATIVO desta tarefa neste host
+            //   (pmax-pidle)*tempo*carbon_h
+            // + IDLE de TODAS as GPUs ate o termo (eft) da tarefa:
+            //   SOMA_g pidle_g * eft * carbon_g
+            // O termo idle penaliza escolher GPU lenta, pois ela aumenta o eft e,
+            // com ele, o idle acumulado de toda a plataforma. Sem esse termo, o
+            // criterio marginal (pmax-pidle)*tempo premiava GPU lenta -> com ALPHA=0
+            // o carbono SUBIA em vez de cair (makespan esticado liga tudo por mais
+            // tempo). O eft e uma aproximacao LOCAL do makespan final (declarar na
+            // metodologia). Unidades em Joules*intensidade; escala cancela na norm.
+            double eft_cand = slot.second;
+            double c_ativo = (host_pmax.at(hostname) - host_pidle.at(hostname))
+                             * execution_time * host_carbon.at(hostname);
+            double c_idle = 0.0;
+            for (auto const &hh : host_list) {
+                c_idle += host_pidle.at(hh) * eft_cand * host_carbon.at(hh);
+            }
+            double carbon_g = c_ativo + c_idle;
             cands.push_back({hostname, slot.first, slot.second, carbon_g});
         }
 
@@ -376,7 +397,14 @@ int Controller::main() {
     }
 
     double end_time = this->getSimulation()->getCurrentSimulatedDate();
-    this->makespan = end_time - start_time;
+    // CAMINHO 2: makespan = maior task_finish_time (EFT estimado, ja com
+    // comunicacao heterogenea). Coerente com HEFT/DLS/PEFT/IPEFT.
+    double makespan_analitico = 0.0;
+    for (auto const &kv : task_finish_time) {
+        makespan_analitico = std::max(makespan_analitico, kv.second);
+    }
+    this->makespan = makespan_analitico;
+    (void) end_time;
 
     for (auto &entry : host_intervals) {
         auto &intervals = entry.second;
@@ -432,7 +460,7 @@ int Controller::main() {
     }
     
     std::cout << "------------------------------------------------------------" << std::endl;
-    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << (end_time - start_time) << " s" << std::endl;
+    std::cout << "Makespan Total: " << std::fixed << std::setprecision(4) << this->makespan << " s" << std::endl;
     std::cout << "============================================================" << std::endl;
 
     return 0;
